@@ -1,0 +1,8 @@
+earth2studio-taiwan
+Copyright 2026 yinruei
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It drives, but does not include, third-party software and models: NVIDIA Earth2Studio, PhysicsNeMo,
+makani and torch-harmonics (Apache-2.0); FourCastNet v3 weights (Apache-2.0); the NGC CorrDiff Taiwan
+inference package (see its LICENSE.txt); NOAA GFS data and IBTrACS best tracks (freely available from NOAA).

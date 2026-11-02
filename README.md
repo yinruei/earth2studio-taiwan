@@ -277,6 +277,8 @@ most likely reflects a warm file-system cache on the second run, not compilation
 
 ## Licenses and data
 
+- **This repository's code and documentation:** [Apache-2.0](LICENSE), Copyright 2026 yinruei (see [NOTICE](NOTICE)).
+  Model weights, wheels and input data are not included; each keeps its own license, listed below.
 - FCN3 weights: [nvidia/fourcastnet3](https://huggingface.co/nvidia/fourcastnet3) (Apache-2.0), commit `76ef0c6`.
 - CorrDiff Taiwan: [NGC `nvidia/modulus/corrdiff_inference_package` v1](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/modulus/models/corrdiff_inference_package); see the package's `LICENSE.txt`.
 - GFS: NOAA Global Forecast System via the [NOAA Open Data Dissemination program on AWS](https://registry.opendata.aws/noaa-gfs-bdp-pds/).
