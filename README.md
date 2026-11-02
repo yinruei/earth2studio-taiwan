@@ -14,7 +14,7 @@ and four CorrDiff samples per lead time.
 |---|---|
 | FCN3, one 6-hour step (BF16 autocast, Earth2Studio default) | **1.96 s** |
 | FCN3, one 6-hour step (FP32) | 2.68 s, so BF16 is **1.37x** faster |
-| CorrDiff Taiwan, 4 samples per lead time | 2.21 s (0.55 s per sample) |
+| CorrDiff Taiwan, 4 samples per lead time | 2.21 s (0.55 s per sample); **1.29 s with `torch.compile` (1.71x)** |
 | 48-hour forecast + downscaling (8 steps at steady-state speed) | ~33 s |
 | Peak PyTorch allocated memory | 49.4 GiB |
 | BF16 vs FP32, regional t2m / MSLP RMSE at +48 h | 0.083 K / 0.071 hPa; same typhoon-centre grid point at every lead |
@@ -71,6 +71,8 @@ every CorrDiff sample are saved for inspection.
 | `jobs/e2s_precision_job.sh` | PJM job: BF16 vs FP32, ABBA order, 2 runs each |
 | `scripts/compare_runs.py`, `scripts/compare_precision.py`, `scripts/plot_run.py` | Comparison tables and figures |
 | `scripts/track_verify.py` | FCN3 centre track and central pressure vs IBTrACS JMA / JTWC best tracks |
+| `scripts/corrdiff_bench.py`, `scripts/plot_corrdiff_bench.py` | CorrDiff precision / steps / batching / `torch.compile` benchmark with NVTX ranges |
+| `jobs/corrdiff_bench_job.sh` | PJM job: CorrDiff benchmark, then an Nsight Systems capture of the default configuration |
 | `results/`, `figures/` | Measured outputs used in this README |
 
 Model weights, wheels and forecast outputs are not committed. All site-specific paths live in `site.env`;
@@ -247,7 +249,7 @@ only applies to the remaining layers.
 one forecast + downscaling step from about 4.89 s to 4.17 s (15%). Profile the whole pipeline before choosing
 what to optimize.
 
-### torch.compile vs eager
+### torch.compile vs eager (models as shipped)
 
 ![torch.compile vs eager](figures/compile_vs_eager_timing.png)
 
@@ -262,11 +264,61 @@ In the pinned makani version, `@torch.compile` on the FCN3 network is commented 
 times"), several blocks are wrapped in `torch.compiler.disable`, and only small einsum contractions are
 compiled. The expensive operators are torch-harmonics' own CUDA kernels. Fixing the JIT toolchain (pitfall 8)
 still matters for other models, but it does not speed up FCN3. The FCN3 load-time difference (40.6 vs 32.3 s)
-most likely reflects a warm file-system cache on the second run, not compilation.
+most likely reflects a warm file-system cache on the second run, not compilation. CorrDiff is unchanged here
+because Earth2Studio also leaves its `torch.compile` calls commented out; compiling it explicitly is the
+largest gain in the next section.
+
+### CorrDiff: profile first, then optimize
+
+CorrDiff costs as much per lead time as FCN3, so it is the next bottleneck. Every configuration below
+downscales the same input (FCN3 at +30 h, Kong-rey near landfall) with the same seed, 5 timed calls each.
+The default is Earth2Studio's: FP16 weights, 8 Euler steps, `channels_last`, all samples in one batch.
+
+![CorrDiff Taiwan benchmark](figures/corrdiff_bench.png)
+
+**What Nsight Systems shows (default configuration):** the diffusion network runs 8 times per call and accounts
+for about 98% of the sampler's GPU time (~0.27 s per evaluation; the regression network runs once). By kernel
+type, **68% of GPU time is element-wise, GroupNorm and SiLU kernels** and only 29% is tensor-core convolution:
+the network is limited by memory traffic, not arithmetic. One call launches about 18,000 kernels, but the CPU
+is ahead of the GPU (most CUDA API time is spent waiting in `cudaStreamSynchronize`), so the fix is fewer,
+larger kernels rather than lower launch overhead.
+
+| Configuration (4 samples) | Seconds per call | vs default | Peak GiB | Deviation from default / seed-to-seed spread |
+|---|---:|---:|---:|---|
+| `torch.compile` (FP16) | 1.29 | **1.71x** | 3.98 | 0.03–0.11 |
+| Default: FP16, 8 steps | 2.21 | 1.00x | 4.00 | reference |
+| 4 Euler steps | 1.15 | 1.92x | 4.00 | 0.31–0.65 |
+| 12 Euler steps | 3.28 | 0.67x | 4.00 | 0.09–0.24 |
+| 18 Euler steps | 4.89 | 0.45x | 4.00 | 0.12–0.30 |
+| FP32, TF32 convolutions (PyTorch default) | 3.39 | 0.65x | 7.69 | 0.03–0.10 |
+| FP32 strict (TF32 off) | 6.77 | 0.33x | 7.69 | 0.03–0.11 |
+
+The last column is the per-sample RMSE against the default (same seed), divided by the RMSE between two seeds
+of the default, i.e. the spread the generative model produces anyway; ranges cover mrr, t2m, u10m and v10m.
+Full numbers: [`results/corrdiff_bench_summary.txt`](results/corrdiff_bench_summary.txt).
+
+- **`torch.compile` is both faster and closer to FP32.** Kernel fusion removes most of the memory-bound
+  element-wise traffic Nsight identified. Its outputs are about 7x closer to strict FP32 than eager FP16 is
+  (RMSE to FP32: mrr 0.017 vs 0.121 dBZ, t2m 0.004 vs 0.027 K), most likely because the fused kernels compute
+  in FP32 internally. The cost is a 113 s first call per fresh process (cold compile cache).
+- **FP16 is worth keeping:** 1.54x faster than FP32 with TF32 and 3.07x faster than strict FP32, at half the
+  memory, while differing from FP32 by 3–11% of the seed-to-seed spread. On A100, PyTorch's "FP32"
+  convolutions already use TF32 by default.
+- **Diffusion steps trade linearly** (about 0.27 s per Euler step plus a small fixed cost). Four steps halve
+  the time and stay within the generative spread; whether they are still physically adequate needs verification
+  against observations, which this benchmark does not do.
+- **Batching:** time per sample falls from 0.69 s (1 sample) to about 0.53 s from 8 samples on, and memory grows
+  by about 0.85 GiB per sample (54.7 GiB at 64), so roughly 90 samples fit in 80 GB.
+
+**Sizing a 50-member, 45-day downscaling on one A100 (projection):** eager FP16 at 0.53 s per sample gives
+about 27 s per lead time and **about 20 min per initialization**. With `torch.compile` (0.32 s per sample,
+measured only at 4 samples) the projection is about 12 min, if the per-sample gain holds at larger batches.
 
 ## Limitations
 
 - One typhoon case, 48 hours, one GPU; each timing configuration was measured once or twice.
+- The CorrDiff benchmark uses a single input field; `torch.compile` was timed only at 4 samples, and its
+  compile cost was measured with a cold cache.
 - The centre track is the FCN3 grid-point MSLP minimum (0.25°, ~28 km cells, up to ~19 km quantization);
   "same grid point" means both precisions fall in the same cell.
 - The track check uses JMA and JTWC best tracks from IBTrACS, not CWA's own best track. One case cannot measure

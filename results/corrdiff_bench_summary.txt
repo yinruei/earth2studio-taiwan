@@ -1,0 +1,35 @@
+CorrDiff Taiwan, input = FCN3 +30 h, NVIDIA A100-SXM4-80GB, torch 2.9.1+cu126, 5 timed calls per configuration
+
+configuration             median s  per sample s  first call s  peak GiB  vs default
+torch.compile (FP16)         1.290         0.323         113.1      3.98       1.71x
+default: FP16, 8 steps       2.206         0.551          20.1      4.00       1.00x
+4 steps                      1.147         0.287           1.2      4.00       1.92x
+12 steps                     3.284         0.821           3.3      4.00       0.67x
+18 steps                     4.891         1.223           4.9      4.00       0.45x
+FP32 (TF32 convs)            3.389         0.847           9.9      7.69       0.65x
+FP32 strict (no TF32)        6.771         1.693          10.8      7.69       0.33x
+
+Sample scaling (FP16, 8 steps, one batch):
+ samples  median s  per sample s  peak GiB
+       1     0.692         0.692      1.46
+       2     1.201         0.600      2.30
+       4     2.206         0.551      4.00
+       8     4.221         0.528      7.38
+      16     8.608         0.538     14.14
+      32    16.934         0.529     27.65
+      64    36.265         0.567     54.68
+
+Per-sample RMSE vs default (same seed); seed2 = default with seed + 1 (generative spread):
+configuration                  mrr       t2m      u10m      v10m
+seed + 1                     1.656     0.252     0.494     0.544
+torch.compile (FP16)         0.121     0.027     0.013     0.015
+4 steps                      0.514     0.164     0.235     0.262
+12 steps                     0.148     0.060     0.067     0.077
+18 steps                     0.193     0.076     0.087     0.099
+FP32 (TF32 convs)            0.122     0.026     0.014     0.015
+FP32 strict (no TF32)        0.121     0.027     0.014     0.015
+
+Nsight Systems, default config, 2 calls: 36464 kernel launches, 4462 ms GPU kernel time; profiled call 2.24 s
+  elementwise / norm / activation: 68% of GPU kernel time
+  convolution (tensor core): 29% of GPU kernel time
+  other: 2% of GPU kernel time
