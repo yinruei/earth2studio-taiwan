@@ -27,31 +27,26 @@ checked against IBTrACS best tracks as a sanity check; one case cannot character
 ## Architecture
 
 ```mermaid
-flowchart LR
-  subgraph WS["Internet-connected workstation"]
-    A["pip download (Linux / py3.12 wheels)<br/>+ torch CUDA runtime wheels"]
-    B["Model weights<br/>FCN3 (Hugging Face) · CorrDiff Taiwan (NGC)"]
-    C["makani · torch-harmonics<br/>pinned GitHub commits"]
-    D["conda-forge gcc 13 + sysroot 2.28<br/>(explicit package list)"]
-    E["GFS 0.25° f000<br/>72 GRIB messages via .idx byte ranges"]
+flowchart TB
+  subgraph WS["1 · Internet-connected workstation"]
+    direction LR
+    A["Linux py3.12 wheels<br/>+ torch CUDA runtime"]
+    B["FCN3 + CorrDiff<br/>Taiwan weights"]
+    C["makani, torch-harmonics<br/>pinned sources"]
+    D["gcc 13 conda<br/>packages"]
+    E["GFS f000: 72 fields<br/>by byte range"]
   end
-  subgraph LN["Cluster login node (no GPU, no internet)"]
-    F["venv: Python 3.12 · torch 2.9.1+cu126<br/>earth2studio 0.20.0 · physicsnemo 2.0.0 · warp 1.12.0"]
-    G["build torch-harmonics CUDA kernels<br/>gcc 13 + nvcc 12.6, sm_80"]
-    H["make_ic.py: GRIB → DataArray<br/>(Earth2Studio GFS lexicon units)"]
+  subgraph LN["2 · Cluster login node: no GPU, no internet"]
+    direction LR
+    F["venv: torch 2.9.1<br/>earth2studio 0.20"] --> G["build torch-harmonics<br/>CUDA kernels, sm_80"]
+    H["make_ic.py<br/>GRIB → DataArray"]
   end
-  subgraph GN["GPU node via PJM (1x A100)"]
-    I["FCN3 0.25° global<br/>6-hour steps, BF16 autocast"]
-    J["map_coords → Taiwan<br/>36x40 input grid"]
-    K["CorrDiff Taiwan<br/>448x448 (~2 km), 4 samples"]
-    L["NetCDF outputs + timings.json"]
+  subgraph GN["3 · GPU node via PJM, 1x A100"]
+    direction LR
+    I["FCN3 0.25° global<br/>6 h steps, BF16"] --> J["map_coords<br/>to Taiwan"] --> K["CorrDiff Taiwan<br/>~2 km, 4 samples"] --> L["NetCDF +<br/>timings.json"]
   end
-  A & C & D --> F
-  F --> G
-  B --> I
-  E --> H --> I
-  I --> J --> K --> L
-  L --> M["compare_*.py / plot_run.py<br/>figures and tables"]
+  WS -- "tar / scp" --> LN
+  LN -- "pjsub" --> GN
 ```
 
 The run script mirrors `earth2studio.run.diagnostic`: fetch → `map_coords` → prognostic iterator → `map_coords`
