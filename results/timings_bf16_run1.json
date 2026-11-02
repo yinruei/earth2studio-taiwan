@@ -1,0 +1,102 @@
+{
+  "steps": [
+    {
+      "step": 0,
+      "lead_hours": 0,
+      "fcn3_sec": 3.1091218292713165,
+      "map_sec": 1.4257808290421963,
+      "corrdiff_sec": 35.12240897677839,
+      "host_copy_sec": 0.7716866582632065
+    },
+    {
+      "step": 1,
+      "lead_hours": 6,
+      "fcn3_sec": 25.0471655651927,
+      "map_sec": 0.13230325281620026,
+      "corrdiff_sec": 2.810152815654874,
+      "host_copy_sec": 0.25121453404426575
+    },
+    {
+      "step": 2,
+      "lead_hours": 12,
+      "fcn3_sec": 1.9907507430762053,
+      "map_sec": 0.0008751358836889267,
+      "corrdiff_sec": 2.203770440071821,
+      "host_copy_sec": 0.08104865252971649
+    },
+    {
+      "step": 3,
+      "lead_hours": 18,
+      "fcn3_sec": 1.9587855488061905,
+      "map_sec": 0.0008745249360799789,
+      "corrdiff_sec": 2.2043111864477396,
+      "host_copy_sec": 0.07215788587927818
+    },
+    {
+      "step": 4,
+      "lead_hours": 24,
+      "fcn3_sec": 1.9570150077342987,
+      "map_sec": 0.0008557327091693878,
+      "corrdiff_sec": 2.2054073587059975,
+      "host_copy_sec": 0.0731886588037014
+    },
+    {
+      "step": 5,
+      "lead_hours": 30,
+      "fcn3_sec": 1.9568647891283035,
+      "map_sec": 0.0008872263133525848,
+      "corrdiff_sec": 2.208130205050111,
+      "host_copy_sec": 0.07218447141349316
+    },
+    {
+      "step": 6,
+      "lead_hours": 36,
+      "fcn3_sec": 1.9571457523852587,
+      "map_sec": 0.0008936766535043716,
+      "corrdiff_sec": 2.210399294272065,
+      "host_copy_sec": 0.07217984646558762
+    },
+    {
+      "step": 7,
+      "lead_hours": 42,
+      "fcn3_sec": 1.956435538828373,
+      "map_sec": 0.000858113169670105,
+      "corrdiff_sec": 2.2093904204666615,
+      "host_copy_sec": 0.07221236824989319
+    },
+    {
+      "step": 8,
+      "lead_hours": 48,
+      "fcn3_sec": 1.9577726554125547,
+      "map_sec": 0.001296183094382286,
+      "corrdiff_sec": 2.2098033633083105,
+      "host_copy_sec": 0.07444201409816742
+    }
+  ],
+  "fcn3_load_sec": 36.36136898957193,
+  "corrdiff_load_sec": 12.454243885353208,
+  "to_device_sec": 1.134455218911171,
+  "fetch_sec": 1.9107281509786844,
+  "peak_allocated_gib_during_rollout": 49.3657488822937,
+  "summary": {
+    "fcn3_step_median_sec": 1.9574592038989067,
+    "corrdiff_per_lead_median_sec": 2.2093904204666615,
+    "corrdiff_per_sample_median_sec": 0.5523476051166654,
+    "total_rollout_sec": 98.37977125495672
+  },
+  "environment": {
+    "python": "3.12.8",
+    "torch": "2.9.1+cu126",
+    "cuda": "12.6",
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "nsteps": 8,
+    "samples": 4,
+    "seed": 20241030,
+    "init": "2024-10-30T00:00:00.000000000",
+    "ic": "data/gfs_20241030T00_ic.nc",
+    "fcn3_precision": "bf16",
+    "matmul_allow_tf32": false,
+    "cudnn_allow_tf32": true,
+    "torchdynamo_disabled": true
+  }
+}

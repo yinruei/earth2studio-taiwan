@@ -1,0 +1,34 @@
+## Timing (median of steady FCN3 steps = leads +12..+48 h; CorrDiff median per lead)
+run                                  precision  FCN3 step s  first step s  CorrDiff s  peak GiB
+run_53481093_2_fp32                       fp32        2.678         45.90       2.210     49.33
+run_53481093_3_fp32                       fp32        2.679         33.58       2.209     49.33
+run_53481093_1_bf16                       bf16        1.957         25.05       2.209     49.37
+run_53481093_4_bf16                       bf16        1.964         31.99       2.210     49.37
+FCN3 steady-step speedup, BF16 vs FP32 (mean of runs): 1.37x (2.679 s -> 1.960 s)
+
+## Reproducibility (same precision, same seed)
+fp32: run 1 vs run 2 max |diff| = 0
+bf16: run 1 vs run 2 max |diff| = 0
+
+## BF16 - FP32, FCN3 Taiwan region (15-32N, 112-130E), cos-lat weighted RMSE and max |diff|
+ lead  t2m RMSE K  t2m max K  msl RMSE hPa  msl max hPa           centre FP32           centre BF16  dist km  dP hPa
+    0      0.0000      0.000        0.0000        0.000  953.6@19.25N,124.50E  953.6@19.25N,124.50E      0.0    0.00
+    6      0.0367      0.155        0.0294        0.275  949.5@19.75N,124.00E  949.5@19.75N,124.00E      0.0    0.08
+   12      0.0435      0.192        0.0404        0.424  953.1@20.25N,123.75E  953.3@20.25N,123.75E      0.0    0.22
+   18      0.0562      0.196        0.0497        0.499  953.4@21.00N,123.00E  953.6@21.00N,123.00E      0.0    0.21
+   24      0.0616      0.218        0.0580        0.608  960.7@21.75N,122.25E  961.1@21.75N,122.25E      0.0    0.32
+   30      0.0784      0.252        0.0449        0.475  968.0@23.25N,121.75E  968.4@23.25N,121.75E      0.0    0.39
+   36      0.0728      0.255        0.0333        0.332  979.0@24.50N,120.50E  979.1@24.50N,120.50E      0.0    0.03
+   42      0.0866      0.315        0.0294        0.127  984.5@25.00N,120.25E  984.5@25.00N,120.25E      0.0    0.00
+   48      0.0832      0.285        0.0707        0.393  992.8@26.00N,120.50E  992.8@26.00N,120.50E      0.0   -0.02
+
+## Downstream CorrDiff (its own precision unchanged; inputs differ), sample-mean fields
+  + 0h  t2m RMSE 0.000 K   10 m wind RMSE 0.000 m/s   max wind 45.4 vs 45.4
+  + 6h  t2m RMSE 0.046 K   10 m wind RMSE 0.060 m/s   max wind 47.6 vs 47.7
+  +12h  t2m RMSE 0.046 K   10 m wind RMSE 0.070 m/s   max wind 44.1 vs 44.1
+  +18h  t2m RMSE 0.061 K   10 m wind RMSE 0.100 m/s   max wind 43.0 vs 43.3
+  +24h  t2m RMSE 0.070 K   10 m wind RMSE 0.124 m/s   max wind 46.1 vs 46.1
+  +30h  t2m RMSE 0.086 K   10 m wind RMSE 0.184 m/s   max wind 42.9 vs 42.9
+  +36h  t2m RMSE 0.079 K   10 m wind RMSE 0.186 m/s   max wind 32.1 vs 32.1
+  +42h  t2m RMSE 0.070 K   10 m wind RMSE 0.170 m/s   max wind 30.9 vs 30.4
+  +48h  t2m RMSE 0.087 K   10 m wind RMSE 0.261 m/s   max wind 27.6 vs 27.7

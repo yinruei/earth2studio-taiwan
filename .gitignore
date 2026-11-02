@@ -1,0 +1,21 @@
+# Site-specific settings
+site.env
+gcc13_explicit.local.txt
+
+# Deployment artifacts (large, downloaded or built on the cluster)
+venv/
+wheels/
+src/
+models/
+gfs/
+data/
+cache/
+log/
+
+# Raw forecast outputs; summaries in results/*.txt|csv|json are kept
+results/run_*/
+*.nc
+*.grib2
+
+__pycache__/
+*.pyc

@@ -1,0 +1,512 @@
+{
+ "source": "https://noaa-gfs-bdp-pds.s3.amazonaws.com/gfs.20241030/00/atmos/gfs.t00z.pgrb2.0p25.f000",
+ "init": "2024-10-30T00:00:00Z",
+ "variables": [
+  "u10m",
+  "v10m",
+  "u100m",
+  "v100m",
+  "t2m",
+  "msl",
+  "tcwv",
+  "u50",
+  "u100",
+  "u150",
+  "u200",
+  "u250",
+  "u300",
+  "u400",
+  "u500",
+  "u600",
+  "u700",
+  "u850",
+  "u925",
+  "u1000",
+  "v50",
+  "v100",
+  "v150",
+  "v200",
+  "v250",
+  "v300",
+  "v400",
+  "v500",
+  "v600",
+  "v700",
+  "v850",
+  "v925",
+  "v1000",
+  "z50",
+  "z100",
+  "z150",
+  "z200",
+  "z250",
+  "z300",
+  "z400",
+  "z500",
+  "z600",
+  "z700",
+  "z850",
+  "z925",
+  "z1000",
+  "t50",
+  "t100",
+  "t150",
+  "t200",
+  "t250",
+  "t300",
+  "t400",
+  "t500",
+  "t600",
+  "t700",
+  "t850",
+  "t925",
+  "t1000",
+  "q50",
+  "q100",
+  "q150",
+  "q200",
+  "q250",
+  "q300",
+  "q400",
+  "q500",
+  "q600",
+  "q700",
+  "q850",
+  "q925",
+  "q1000"
+ ],
+ "messages": [
+  {
+   "variable": "u10m",
+   "lexicon": "UGRD::10 m above ground",
+   "idx_line": "585:414068816:d=2024103000:UGRD:10 m above ground:anl:",
+   "bytes": 964714
+  },
+  {
+   "variable": "v10m",
+   "lexicon": "VGRD::10 m above ground",
+   "idx_line": "586:415033530:d=2024103000:VGRD:10 m above ground:anl:",
+   "bytes": 943914
+  },
+  {
+   "variable": "u100m",
+   "lexicon": "UGRD::100 m above ground",
+   "idx_line": "643:459268570:d=2024103000:UGRD:100 m above ground:anl:",
+   "bytes": 588507
+  },
+  {
+   "variable": "v100m",
+   "lexicon": "VGRD::100 m above ground",
+   "idx_line": "644:459857077:d=2024103000:VGRD:100 m above ground:anl:",
+   "bytes": 582242
+  },
+  {
+   "variable": "t2m",
+   "lexicon": "TMP::2 m above ground",
+   "idx_line": "580:409729418:d=2024103000:TMP:2 m above ground:anl:",
+   "bytes": 875610
+  },
+  {
+   "variable": "msl",
+   "lexicon": "PRMSL::mean sea level",
+   "idx_line": "1:0:d=2024103000:PRMSL:mean sea level:anl:",
+   "bytes": 987351
+  },
+  {
+   "variable": "tcwv",
+   "lexicon": "PWAT::entire atmosphere (considered as a single layer)",
+   "idx_line": "604:421702406:d=2024103000:PWAT:entire atmosphere (considered as a single layer):anl:",
+   "bytes": 1196085
+  },
+  {
+   "variable": "u50",
+   "lexicon": "UGRD::50 mb",
+   "idx_line": "202:158574682:d=2024103000:UGRD:50 mb:anl:",
+   "bytes": 874009
+  },
+  {
+   "variable": "u100",
+   "lexicon": "UGRD::100 mb",
+   "idx_line": "228:180894497:d=2024103000:UGRD:100 mb:anl:",
+   "bytes": 939041
+  },
+  {
+   "variable": "u150",
+   "lexicon": "UGRD::150 mb",
+   "idx_line": "244:191477001:d=2024103000:UGRD:150 mb:anl:",
+   "bytes": 982777
+  },
+  {
+   "variable": "u200",
+   "lexicon": "UGRD::200 mb",
+   "idx_line": "260:202199870:d=2024103000:UGRD:200 mb:anl:",
+   "bytes": 581858
+  },
+  {
+   "variable": "u250",
+   "lexicon": "UGRD::250 mb",
+   "idx_line": "276:212759108:d=2024103000:UGRD:250 mb:anl:",
+   "bytes": 591714
+  },
+  {
+   "variable": "u300",
+   "lexicon": "UGRD::300 mb",
+   "idx_line": "292:223798046:d=2024103000:UGRD:300 mb:anl:",
+   "bytes": 606573
+  },
+  {
+   "variable": "u400",
+   "lexicon": "UGRD::400 mb",
+   "idx_line": "324:244941180:d=2024103000:UGRD:400 mb:anl:",
+   "bytes": 574922
+  },
+  {
+   "variable": "u500",
+   "lexicon": "UGRD::500 mb",
+   "idx_line": "356:265837207:d=2024103000:UGRD:500 mb:anl:",
+   "bytes": 552844
+  },
+  {
+   "variable": "u600",
+   "lexicon": "UGRD::600 mb",
+   "idx_line": "388:286157753:d=2024103000:UGRD:600 mb:anl:",
+   "bytes": 540309
+  },
+  {
+   "variable": "u700",
+   "lexicon": "UGRD::700 mb",
+   "idx_line": "420:306960520:d=2024103000:UGRD:700 mb:anl:",
+   "bytes": 540488
+  },
+  {
+   "variable": "u850",
+   "lexicon": "UGRD::850 mb",
+   "idx_line": "468:339203819:d=2024103000:UGRD:850 mb:anl:",
+   "bytes": 563996
+  },
+  {
+   "variable": "u925",
+   "lexicon": "UGRD::925 mb",
+   "idx_line": "500:361930016:d=2024103000:UGRD:925 mb:anl:",
+   "bytes": 566340
+  },
+  {
+   "variable": "u1000",
+   "lexicon": "UGRD::1000 mb",
+   "idx_line": "548:393774922:d=2024103000:UGRD:1000 mb:anl:",
+   "bytes": 965686
+  },
+  {
+   "variable": "v50",
+   "lexicon": "VGRD::50 mb",
+   "idx_line": "203:159448691:d=2024103000:VGRD:50 mb:anl:",
+   "bytes": 857029
+  },
+  {
+   "variable": "v100",
+   "lexicon": "VGRD::100 mb",
+   "idx_line": "229:181833538:d=2024103000:VGRD:100 mb:anl:",
+   "bytes": 930788
+  },
+  {
+   "variable": "v150",
+   "lexicon": "VGRD::150 mb",
+   "idx_line": "245:192459778:d=2024103000:VGRD:150 mb:anl:",
+   "bytes": 935048
+  },
+  {
+   "variable": "v200",
+   "lexicon": "VGRD::200 mb",
+   "idx_line": "261:202781728:d=2024103000:VGRD:200 mb:anl:",
+   "bytes": 580343
+  },
+  {
+   "variable": "v250",
+   "lexicon": "VGRD::250 mb",
+   "idx_line": "277:213350822:d=2024103000:VGRD:250 mb:anl:",
+   "bytes": 599105
+  },
+  {
+   "variable": "v300",
+   "lexicon": "VGRD::300 mb",
+   "idx_line": "293:224404619:d=2024103000:VGRD:300 mb:anl:",
+   "bytes": 620237
+  },
+  {
+   "variable": "v400",
+   "lexicon": "VGRD::400 mb",
+   "idx_line": "325:245516102:d=2024103000:VGRD:400 mb:anl:",
+   "bytes": 589863
+  },
+  {
+   "variable": "v500",
+   "lexicon": "VGRD::500 mb",
+   "idx_line": "357:266390051:d=2024103000:VGRD:500 mb:anl:",
+   "bytes": 552671
+  },
+  {
+   "variable": "v600",
+   "lexicon": "VGRD::600 mb",
+   "idx_line": "389:286698062:d=2024103000:VGRD:600 mb:anl:",
+   "bytes": 532698
+  },
+  {
+   "variable": "v700",
+   "lexicon": "VGRD::700 mb",
+   "idx_line": "421:307501008:d=2024103000:VGRD:700 mb:anl:",
+   "bytes": 535186
+  },
+  {
+   "variable": "v850",
+   "lexicon": "VGRD::850 mb",
+   "idx_line": "469:339767815:d=2024103000:VGRD:850 mb:anl:",
+   "bytes": 575116
+  },
+  {
+   "variable": "v925",
+   "lexicon": "VGRD::925 mb",
+   "idx_line": "501:362496356:d=2024103000:VGRD:925 mb:anl:",
+   "bytes": 576895
+  },
+  {
+   "variable": "v1000",
+   "lexicon": "VGRD::1000 mb",
+   "idx_line": "549:394740608:d=2024103000:VGRD:1000 mb:anl:",
+   "bytes": 951327
+  },
+  {
+   "variable": "z50",
+   "lexicon": "HGT::50 mb",
+   "idx_line": "195:153460084:d=2024103000:HGT:50 mb:anl:",
+   "bytes": 752135
+  },
+  {
+   "variable": "z100",
+   "lexicon": "HGT::100 mb",
+   "idx_line": "221:175062468:d=2024103000:HGT:100 mb:anl:",
+   "bytes": 746655
+  },
+  {
+   "variable": "z150",
+   "lexicon": "HGT::150 mb",
+   "idx_line": "237:186051550:d=2024103000:HGT:150 mb:anl:",
+   "bytes": 746634
+  },
+  {
+   "variable": "z200",
+   "lexicon": "HGT::200 mb",
+   "idx_line": "253:196436875:d=2024103000:HGT:200 mb:anl:",
+   "bytes": 738579
+  },
+  {
+   "variable": "z250",
+   "lexicon": "HGT::250 mb",
+   "idx_line": "269:206799006:d=2024103000:HGT:250 mb:anl:",
+   "bytes": 731481
+  },
+  {
+   "variable": "z300",
+   "lexicon": "HGT::300 mb",
+   "idx_line": "285:217687233:d=2024103000:HGT:300 mb:anl:",
+   "bytes": 722406
+  },
+  {
+   "variable": "z400",
+   "lexicon": "HGT::400 mb",
+   "idx_line": "317:238846523:d=2024103000:HGT:400 mb:anl:",
+   "bytes": 704612
+  },
+  {
+   "variable": "z500",
+   "lexicon": "HGT::500 mb",
+   "idx_line": "349:259559560:d=2024103000:HGT:500 mb:anl:",
+   "bytes": 811049
+  },
+  {
+   "variable": "z600",
+   "lexicon": "HGT::600 mb",
+   "idx_line": "381:279823922:d=2024103000:HGT:600 mb:anl:",
+   "bytes": 844475
+  },
+  {
+   "variable": "z700",
+   "lexicon": "HGT::700 mb",
+   "idx_line": "413:300539307:d=2024103000:HGT:700 mb:anl:",
+   "bytes": 851879
+  },
+  {
+   "variable": "z850",
+   "lexicon": "HGT::850 mb",
+   "idx_line": "461:332360071:d=2024103000:HGT:850 mb:anl:",
+   "bytes": 890965
+  },
+  {
+   "variable": "z925",
+   "lexicon": "HGT::925 mb",
+   "idx_line": "493:355162179:d=2024103000:HGT:925 mb:anl:",
+   "bytes": 926768
+  },
+  {
+   "variable": "z1000",
+   "lexicon": "HGT::1000 mb",
+   "idx_line": "558:399205555:d=2024103000:HGT:1000 mb:anl:",
+   "bytes": 984278
+  },
+  {
+   "variable": "t50",
+   "lexicon": "TMP::50 mb",
+   "idx_line": "196:154212219:d=2024103000:TMP:50 mb:anl:",
+   "bytes": 751888
+  },
+  {
+   "variable": "t100",
+   "lexicon": "TMP::100 mb",
+   "idx_line": "222:175809123:d=2024103000:TMP:100 mb:anl:",
+   "bytes": 781570
+  },
+  {
+   "variable": "t150",
+   "lexicon": "TMP::150 mb",
+   "idx_line": "238:186798184:d=2024103000:TMP:150 mb:anl:",
+   "bytes": 759646
+  },
+  {
+   "variable": "t200",
+   "lexicon": "TMP::200 mb",
+   "idx_line": "254:197175454:d=2024103000:TMP:200 mb:anl:",
+   "bytes": 760485
+  },
+  {
+   "variable": "t250",
+   "lexicon": "TMP::250 mb",
+   "idx_line": "270:207530487:d=2024103000:TMP:250 mb:anl:",
+   "bytes": 744262
+  },
+  {
+   "variable": "t300",
+   "lexicon": "TMP::300 mb",
+   "idx_line": "286:218409639:d=2024103000:TMP:300 mb:anl:",
+   "bytes": 756698
+  },
+  {
+   "variable": "t400",
+   "lexicon": "TMP::400 mb",
+   "idx_line": "318:239551135:d=2024103000:TMP:400 mb:anl:",
+   "bytes": 728048
+  },
+  {
+   "variable": "t500",
+   "lexicon": "TMP::500 mb",
+   "idx_line": "350:260370609:d=2024103000:TMP:500 mb:anl:",
+   "bytes": 726541
+  },
+  {
+   "variable": "t600",
+   "lexicon": "TMP::600 mb",
+   "idx_line": "382:280668397:d=2024103000:TMP:600 mb:anl:",
+   "bytes": 739364
+  },
+  {
+   "variable": "t700",
+   "lexicon": "TMP::700 mb",
+   "idx_line": "414:301391186:d=2024103000:TMP:700 mb:anl:",
+   "bytes": 757394
+  },
+  {
+   "variable": "t850",
+   "lexicon": "TMP::850 mb",
+   "idx_line": "462:333251036:d=2024103000:TMP:850 mb:anl:",
+   "bytes": 832024
+  },
+  {
+   "variable": "t925",
+   "lexicon": "TMP::925 mb",
+   "idx_line": "494:356088947:d=2024103000:TMP:925 mb:anl:",
+   "bytes": 843049
+  },
+  {
+   "variable": "t1000",
+   "lexicon": "TMP::1000 mb",
+   "idx_line": "542:388807338:d=2024103000:TMP:1000 mb:anl:",
+   "bytes": 851353
+  },
+  {
+   "variable": "q50",
+   "lexicon": "SPFH::50 mb",
+   "idx_line": "199:155238747:d=2024103000:SPFH:50 mb:anl:",
+   "bytes": 1063862
+  },
+  {
+   "variable": "q100",
+   "lexicon": "SPFH::100 mb",
+   "idx_line": "225:177283099:d=2024103000:SPFH:100 mb:anl:",
+   "bytes": 1168060
+  },
+  {
+   "variable": "q150",
+   "lexicon": "SPFH::150 mb",
+   "idx_line": "241:188391197:d=2024103000:SPFH:150 mb:anl:",
+   "bytes": 1065305
+  },
+  {
+   "variable": "q200",
+   "lexicon": "SPFH::200 mb",
+   "idx_line": "257:199020829:d=2024103000:SPFH:200 mb:anl:",
+   "bytes": 1074372
+  },
+  {
+   "variable": "q250",
+   "lexicon": "SPFH::250 mb",
+   "idx_line": "273:209559291:d=2024103000:SPFH:250 mb:anl:",
+   "bytes": 1023492
+  },
+  {
+   "variable": "q300",
+   "lexicon": "SPFH::300 mb",
+   "idx_line": "289:220493883:d=2024103000:SPFH:300 mb:anl:",
+   "bytes": 1075953
+  },
+  {
+   "variable": "q400",
+   "lexicon": "SPFH::400 mb",
+   "idx_line": "321:241552255:d=2024103000:SPFH:400 mb:anl:",
+   "bytes": 1149206
+  },
+  {
+   "variable": "q500",
+   "lexicon": "SPFH::500 mb",
+   "idx_line": "353:262331665:d=2024103000:SPFH:500 mb:anl:",
+   "bytes": 1158216
+  },
+  {
+   "variable": "q600",
+   "lexicon": "SPFH::600 mb",
+   "idx_line": "385:282607702:d=2024103000:SPFH:600 mb:anl:",
+   "bytes": 1204626
+  },
+  {
+   "variable": "q700",
+   "lexicon": "SPFH::700 mb",
+   "idx_line": "417:303332922:d=2024103000:SPFH:700 mb:anl:",
+   "bytes": 1267417
+  },
+  {
+   "variable": "q850",
+   "lexicon": "SPFH::850 mb",
+   "idx_line": "465:335450368:d=2024103000:SPFH:850 mb:anl:",
+   "bytes": 1361886
+  },
+  {
+   "variable": "q925",
+   "lexicon": "SPFH::925 mb",
+   "idx_line": "497:358344181:d=2024103000:SPFH:925 mb:anl:",
+   "bytes": 1245887
+  },
+  {
+   "variable": "q1000",
+   "lexicon": "SPFH::1000 mb",
+   "idx_line": "545:390670117:d=2024103000:SPFH:1000 mb:anl:",
+   "bytes": 1230430
+  }
+ ]
+}

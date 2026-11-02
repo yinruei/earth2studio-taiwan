@@ -1,0 +1,28 @@
+                                   run_53480844_compiled          run_53480844_eager
+fcn3_load_sec                                     40.642                      32.311
+corrdiff_load_sec                                 10.726                      11.519
+peak_allocated_gib_during_rollout                      49.366                      49.366
+fcn3_step_median_sec                               1.966                       1.959
+corrdiff_per_lead_median_sec                       2.220                       2.207
+total_rollout_sec                                125.992                      98.084
+FCN3 step speedup (run_53480844_eager / run_53480844_compiled): 1.00x
+per-step fcn3_sec / corrdiff_sec:
+  + 0h    2.216 / 28.638      3.834 / 36.240
+  + 6h   60.204 /  2.403     22.546 /  3.309
+  +12h    1.965 /  2.204      2.026 /  2.203
+  +18h    1.963 /  2.220      1.959 /  2.203
+  +24h    1.970 /  2.223      1.966 /  2.207
+  +30h    1.968 /  2.218      1.959 /  2.206
+  +36h    1.963 /  2.359      1.958 /  2.207
+  +42h    1.984 /  2.212      1.957 /  2.208
+  +48h    1.960 /  2.210      1.956 /  2.211
+FCN3 region max |difference| per lead (same seed, same initial condition):
+  + 0h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 953.6hPa@19.25N,124.50E vs 953.6hPa@19.25N,124.50E
+  + 6h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 949.5hPa@19.75N,124.00E vs 949.5hPa@19.75N,124.00E
+  +12h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 953.3hPa@20.25N,123.75E vs 953.3hPa@20.25N,123.75E
+  +18h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 953.6hPa@21.00N,123.00E vs 953.6hPa@21.00N,123.00E
+  +24h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 961.1hPa@21.75N,122.25E vs 961.1hPa@21.75N,122.25E
+  +30h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 968.4hPa@23.25N,121.75E vs 968.4hPa@23.25N,121.75E
+  +36h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 979.1hPa@24.50N,120.50E vs 979.1hPa@24.50N,120.50E
+  +42h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 984.5hPa@25.00N,120.25E vs 984.5hPa@25.00N,120.25E
+  +48h  t2m 0  u10m 0  v10m 0  msl 0  tcwv 0  z500 0   centre 992.8hPa@26.00N,120.50E vs 992.8hPa@26.00N,120.50E

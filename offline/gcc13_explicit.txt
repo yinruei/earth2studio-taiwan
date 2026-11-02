@@ -1,0 +1,21 @@
+@EXPLICIT
+# Replace @PKG_DIR@ with the absolute directory holding the downloaded packages, e.g.
+#   sed "s#@PKG_DIR@#$PWD/gcc13_pkgs#" gcc13_explicit.txt > gcc13_explicit.local.txt
+file://@PKG_DIR@/_libgcc_mutex-0.1-conda_forge.tar.bz2#d7c89558ba9fa0495403155b64376d81
+file://@PKG_DIR@/kernel-headers_linux-64-4.18.0-he073ed8_9.conda#86d9cba083cd041bfbf242a01a7a1999
+file://@PKG_DIR@/ld_impl_linux-64-2.40-hf3520f5_7.conda#b80f2f396ca2c28b8c14c437a4ed1e74
+file://@PKG_DIR@/libgcc-devel_linux-64-13.3.0-h84ea5a7_101.conda#0ce69d40c142915ac9734bc6134e514a
+file://@PKG_DIR@/libstdcxx-devel_linux-64-13.3.0-h84ea5a7_101.conda#29b5a4ed4613fa81a07c21045e3f5bf6
+file://@PKG_DIR@/tzdata-2026e-h5d301ff_0.conda#abccc3810d2b97e570dee487f2b46e38
+file://@PKG_DIR@/libgomp-14.2.0-h77fa898_1.conda#cc3573974587f12dda90d96e3e55a702
+file://@PKG_DIR@/sysroot_linux-64-2.28-he3f20f0_9.conda#2eda1922900aa38230d6e7803124305a
+file://@PKG_DIR@/_openmp_mutex-4.5-2_gnu.tar.bz2#73aaf86a425cc6e73fcf236a5a46396d
+file://@PKG_DIR@/binutils_impl_linux-64-2.40-ha1999f0_7.conda#3f840c7ed70a96b5ebde8044b2f36f32
+file://@PKG_DIR@/binutils_linux-64-2.40-hb3c18ed_9.conda#bb3fb8553a669828501e80d13b6bd744
+file://@PKG_DIR@/libgcc-14.2.0-h77fa898_1.conda#3cb76c3f10d3bc7f1105b2fc9db984df
+file://@PKG_DIR@/libstdcxx-14.2.0-hc0a3c3a_1.conda#234a5554c53625688d51062645337328
+file://@PKG_DIR@/libsanitizer-13.3.0-heb74ff8_1.conda#c4cb22f270f501f5c59a122dc2adf20a
+file://@PKG_DIR@/gcc_impl_linux-64-13.3.0-hfea6d02_1.conda#0d043dbc126b64f79d915a0e96d3a1d5
+file://@PKG_DIR@/gcc_linux-64-13.3.0-h6f18a23_11.conda#639ef869618e311eee4888fcb40747e2
+file://@PKG_DIR@/gxx_impl_linux-64-13.3.0-hdbfa832_1.conda#806367e23a0a6ad21e51875b34c57d7e
+file://@PKG_DIR@/gxx_linux-64-13.3.0-hb14504d_11.conda#2ca7575e4f2da39c5ee260e022ab1a6f
