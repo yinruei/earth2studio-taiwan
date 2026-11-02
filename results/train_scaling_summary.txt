@@ -1,0 +1,16 @@
+PhysicsNeMo AFNO (18.1 M parameters, embed 512, depth 8, patch 4), 448 training pairs on a 64x64x8 regional grid, per-GPU batch 16, NVIDIA A100-SXM4-80GB, torch 2.9.1+cu126, NCCL 2.27.5
+
+precision  GPUs  step ms  samples/s  throughput x  weak-scaling eff.  peak GiB
+fp32          1     68.3        234         1.00x               1.00      1.55
+fp32          2     70.1        456         1.95x               0.97      1.58
+fp32          4     69.7        919         3.92x               0.98      1.58
+bf16          1     33.6        476         1.00x               1.00      1.24
+bf16          2     36.6        874         1.84x               0.92      1.28
+bf16          4     36.1       1771         3.72x               0.93      1.28
+
+BF16 vs FP32 on 1 GPU: 2.03x faster
+Nsight, 4-GPU BF16 (20 steps): NCCL all-reduce = 18.7% of GPU kernel time, 3.9 ms per GPU per step; ncclDevKernel_AllReduce_Sum_f32_RING_LL x320
+Step time added by going from 1 to 4 GPUs (BF16): 2.5 ms, so about 1.4 ms of the all-reduce overlaps with the backward pass
+(profiled step 49.1 ms includes profiler overhead)
+
+Training run, 4 GPUs BF16, 3000 steps: validation MSE 0.1338 -> 0.0341 (normalized units); persistence baseline 0.2149

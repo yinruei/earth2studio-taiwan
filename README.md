@@ -18,6 +18,7 @@ and four CorrDiff samples per lead time.
 | 48-hour forecast + downscaling (8 steps at steady-state speed) | ~33 s |
 | 16-member ensemble, 1 → 4 GPUs on one node | 3.40x in the compute phase, but **2.06x end-to-end**: ~3.5 min of Python start-up and model loading per process |
 | Python start-up: venv on Lustre vs one tar unpacked to node-local disk | 280 s → **32 s** (10 s unpack + 22 s import) |
+| PhysicsNeMo AFNO training, DDP 1 → 4 GPUs (NCCL over NVLink) | weak-scaling efficiency 0.98 (FP32) / 0.93 (BF16); BF16 2.03x faster per step |
 | Peak PyTorch allocated memory | 49.4 GiB |
 | BF16 vs FP32, regional t2m / MSLP RMSE at +48 h | 0.083 K / 0.071 hPa; same typhoon-centre grid point at every lead |
 | `torch.compile` on FCN3 | no steady-state gain (1.97 vs 1.96 s); +38 s compile on the first step |
@@ -78,6 +79,8 @@ every CorrDiff sample are saved for inspection.
 | `scripts/ensemble_worker.py`, `scripts/plot_ensemble_scaling.py` | One ensemble worker per GPU with timestamps and output hashes; scaling summary and timeline |
 | `jobs/ensemble_scaling_job.sh` | PJM job: 16 members on 1, 2 and 4 GPUs, plus NUMA-bound and `/dev/shm` variants |
 | `jobs/import_staging_job.sh` | PJM job: import time from the Lustre venv vs the same venv unpacked from one tar on node-local disk |
+| `scripts/gen_training_data.py`, `scripts/train_afno_ddp.py`, `scripts/plot_train_scaling.py` | FCN3-generated regional training set; PhysicsNeMo AFNO trained with DDP; scaling and loss summary |
+| `jobs/train_scaling_job.sh` | PJM job: data generation, 1/2/4-GPU FP32/BF16 training benchmarks, Nsight capture of NCCL, 3,000-step run |
 | `results/`, `figures/` | Measured outputs used in this README |
 
 Model weights, wheels and forecast outputs are not committed. All site-specific paths live in `site.env`;
@@ -384,11 +387,47 @@ much closer to the 3.4x compute-phase scaling; that combined run has not been me
 an option for the environment on this cluster (pitfall 13), and container runtimes (Apptainer, squashfs mounts)
 are not installed, which is why a plain tar was used.
 
+### Training: PhysicsNeMo AFNO with data parallelism on 4 GPUs
+
+The sections above are inference. This one trains a model, to measure how gradient synchronization scales.
+The training set is generated with the same pipeline, so it can be published: 32 FCN3 members (different
+seeds, same GFS analysis), 4 days at 6-hour steps, 8 variables (10 m wind, 2 m temperature, MSLP, total column
+water vapour, z500, t850, q850) on a 64 x 64 grid over 16–31.75N, 112–127.75E. That gives 448 training pairs
+(28 members) and 64 validation pairs (4 held-out members). A PhysicsNeMo AFNO (18.1 M parameters, patch 4,
+embedding 512, depth 8) learns the 6-hour step with PyTorch DDP, one process per GPU, NCCL 2.27.5. The data sit
+on every GPU, so the timings contain only compute and gradient all-reduce; per-GPU batch is fixed at 16.
+
+![AFNO DDP training](figures/train_scaling.png)
+
+| Precision | GPUs | Step | Samples/s | Throughput | Weak-scaling efficiency |
+|---|---:|---:|---:|---:|---:|
+| FP32 | 1 | 68.3 ms | 234 | 1.00x | 1.00 |
+| FP32 | 4 | 69.7 ms | 919 | 3.92x | 0.98 |
+| BF16 | 1 | 33.6 ms | 476 | 1.00x | 1.00 |
+| BF16 | 4 | 36.1 ms | 1,771 | 3.72x | 0.93 |
+
+2-GPU rows and memory: [`results/train_scaling_summary.txt`](results/train_scaling_summary.txt).
+
+- **Scaling is near-linear because NVLink and DDP's overlap hide most of the all-reduce.** Nsight shows the
+  gradients (FP32, 72.6 MB per step, in 4 buckets) synchronized with NCCL ring all-reduce kernels taking
+  3.9 ms per GPU per step. Going from 1 to 4 GPUs adds only 2.5 ms to a BF16 step, so about 1.4 ms overlaps
+  with the backward pass.
+- **BF16 scales slightly worse, for a predictable reason.** It halves the compute (2.03x faster per step) but
+  not the communication: gradients are still all-reduced in FP32, and a shorter backward pass hides less of it.
+  The time added by going to 4 GPUs is 2.5 ms (7%) of a BF16 step versus 1.4 ms (2%) of an FP32 step. For larger models, BF16 gradient compression (a DDP communication hook),
+  larger buckets or sharded training would be the next levers; they were not tested here.
+- **The model learns the task.** Over 3,000 steps (about 110 s on 4 GPUs) validation MSE falls from 0.134 at
+  step 100 to 0.034 (normalized units), against 0.215 for persistence. All members start from the same analysis and see the
+  same weather, so this shows the training pipeline works, not that the emulator generalizes.
+
 ## Limitations
 
 - One typhoon case, 48 hours, one GPU; each timing configuration was measured once or twice.
 - The CorrDiff benchmark uses a single input field; `torch.compile` was timed only at 4 samples, and its
   compile cost was measured with a cold cache.
+- The training data have almost no meteorological diversity (one analysis, 4 days), and the AFNO is small
+  (18.1 M parameters, 1.2–1.6 GiB of GPU memory), so communication is a small share of each step; larger models
+  would show more communication cost.
 - The ensemble scaling job ran each configuration once, in a fixed order on one node; start-up times depend on
   the shared file system's load at that moment and on page-cache state, which a user job cannot reset.
 - The centre track is the FCN3 grid-point MSLP minimum (0.25°, ~28 km cells, up to ~19 km quantization);
