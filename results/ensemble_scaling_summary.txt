@@ -1,0 +1,28 @@
+16-member FCN3 -> CorrDiff Taiwan ensemble, 8 FCN3 steps, 4 CorrDiff samples per lead, NVIDIA A100-SXM4-80GB
+
+configuration                end-to-end s  speedup   eff.  compute s  speedup   eff.  ready s (max)  member s (med)
+1 GPU                               980.5    1.00x   1.00      667.3    1.00x   1.00          255.2           35.75
+2 GPUs                              612.7    1.60x   0.80      344.8    1.94x   0.97          220.6           35.81
+4 GPUs                              476.8    2.06x   0.51      196.3    3.40x   0.85          221.5           35.86
+4 GPUs, NUMA-bound                  471.9    2.08x   0.52      194.8    3.43x   0.86          233.0           35.84
+4 GPUs, weights in /dev/shm         403.5    2.43x   0.61      183.6    3.63x   0.91          189.1           35.78
+
+Start-up per worker (mean / max seconds):
+  1 GPU                        imports 189.5/189.5  FCN3 load  44.1/ 44.1  CorrDiff load   7.4/  7.4
+  2 GPUs                       imports 156.4/156.4  FCN3 load  41.1/ 41.1  CorrDiff load   7.7/  7.7
+  4 GPUs                       imports 144.0/144.0  FCN3 load  52.4/ 52.4  CorrDiff load  12.4/ 12.4
+  4 GPUs, NUMA-bound           imports 150.1/150.1  FCN3 load  64.5/ 64.5  CorrDiff load  10.4/ 10.4
+  4 GPUs, weights in /dev/shm  imports 138.9/138.9  FCN3 load  34.1/ 34.8  CorrDiff load   2.2/  2.4  staging 8.8
+
+Per-member medians (s): FCN3 total / CorrDiff total / copy+hash
+  1 GPU                         15.64 /  19.97 /  0.12
+  2 GPUs                        15.65 /  20.03 /  0.12
+  4 GPUs                        15.66 /  20.04 /  0.12
+  4 GPUs, NUMA-bound            15.65 /  20.06 /  0.12
+  4 GPUs, weights in /dev/shm   15.65 /  20.01 /  0.12
+
+bitwise identical to 1-GPU results: 1 GPU                        16/16 members
+bitwise identical to 1-GPU results: 2 GPUs                       16/16 members
+bitwise identical to 1-GPU results: 4 GPUs                       16/16 members
+bitwise identical to 1-GPU results: 4 GPUs, NUMA-bound           16/16 members
+bitwise identical to 1-GPU results: 4 GPUs, weights in /dev/shm  16/16 members

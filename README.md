@@ -16,6 +16,7 @@ and four CorrDiff samples per lead time.
 | FCN3, one 6-hour step (FP32) | 2.68 s, so BF16 is **1.37x** faster |
 | CorrDiff Taiwan, 4 samples per lead time | 2.21 s (0.55 s per sample); **1.29 s with `torch.compile` (1.71x)** |
 | 48-hour forecast + downscaling (8 steps at steady-state speed) | ~33 s |
+| 16-member ensemble, 1 → 4 GPUs on one node | 3.40x in the compute phase, but **2.06x end-to-end**: ~3.5 min of Python start-up and model loading per process |
 | Peak PyTorch allocated memory | 49.4 GiB |
 | BF16 vs FP32, regional t2m / MSLP RMSE at +48 h | 0.083 K / 0.071 hPa; same typhoon-centre grid point at every lead |
 | `torch.compile` on FCN3 | no steady-state gain (1.97 vs 1.96 s); +38 s compile on the first step |
@@ -73,6 +74,8 @@ every CorrDiff sample are saved for inspection.
 | `scripts/track_verify.py` | FCN3 centre track and central pressure vs IBTrACS JMA / JTWC best tracks |
 | `scripts/corrdiff_bench.py`, `scripts/plot_corrdiff_bench.py` | CorrDiff precision / steps / batching / `torch.compile` benchmark with NVTX ranges |
 | `jobs/corrdiff_bench_job.sh` | PJM job: CorrDiff benchmark, then an Nsight Systems capture of the default configuration |
+| `scripts/ensemble_worker.py`, `scripts/plot_ensemble_scaling.py` | One ensemble worker per GPU with timestamps and output hashes; scaling summary and timeline |
+| `jobs/ensemble_scaling_job.sh` | PJM job: 16 members on 1, 2 and 4 GPUs, plus NUMA-bound and `/dev/shm` variants |
 | `results/`, `figures/` | Measured outputs used in this README |
 
 Model weights, wheels and forecast outputs are not committed. All site-specific paths live in `site.env`;
@@ -174,6 +177,8 @@ Each of these stopped the workflow at least once. The symptom is what you see; t
 | 8 | `torch._inductor ... CalledProcessError: /bin/gcc ... cuda_utils.c` on the GPU node | **GPU nodes have no `cc1`** (`gcc: error trying to exec 'cc1'`), so Triton's JIT cannot compile. The first guess, a missing `libcuda.so`, was wrong: it exists | Set `CC`/`CXX` to the conda gcc 13 in the job. Read the compiler's own stderr before guessing |
 | 9 | `ImportError: libc10.so` from a one-line kernel check | Importing `disco_helpers` before `torch` has loaded `libc10` | `import torch` first |
 | 10 | "BF16 vs FP32" initially looked like a no-op | Earth2Studio's FCN3 **already** runs under BF16 autocast whenever the torch-harmonics CUDA extension is present (`_cuda_extension_available`) | FP32 control: set `earth2studio.models.px.fcn3._cuda_extension_available = False` after loading; it only selects the autocast dtype, and the kernels stay the same |
+| 11 | Risk of corrupt CorrDiff weights when several workers start together | `CorrDiffTaiwan.load_model` re-extracts its package zip into the same directory on **every** load, so concurrent workers overwrite files that others are reading | Skip extraction when every file is already present at the right size (`scripts/ensemble_worker.py`), or give each worker its own copy |
+| 12 | FP32 "control" for CorrDiff silently used rounded weights | The loader sets `use_fp16=True`, whose setter casts the weights themselves; setting it back to `False` keeps FP16-rounded values | Reload both networks from the checkpoint for FP32 runs (`scripts/corrdiff_bench.py`) |
 
 ## Results
 
@@ -314,11 +319,52 @@ Full numbers: [`results/corrdiff_bench_summary.txt`](results/corrdiff_bench_summ
 about 27 s per lead time and **about 20 min per initialization**. With `torch.compile` (0.32 s per sample,
 measured only at 4 samples) the projection is about 12 min, if the per-sample gain holds at larger batches.
 
+### Ensemble on 4 GPUs: strong scaling and the start-up wall
+
+Ensemble members are independent, so the simplest multi-GPU layout is one worker process per GPU with members
+split round-robin. 16 members (FCN3 48 h + CorrDiff 4 samples per lead, eager, default precision), members
+differing only by seed. The four A100s are NVLink-connected, but these workers never communicate.
+
+![Ensemble scaling on one node](figures/ensemble_scaling.png)
+
+| Configuration | End-to-end | Speedup / efficiency | Compute phase | Speedup / efficiency | Ready to compute |
+|---|---:|---:|---:|---:|---:|
+| 1 GPU | 980.5 s | 1.00x / 1.00 | 667.3 s | 1.00x / 1.00 | 255 s |
+| 2 GPUs | 612.7 s | 1.60x / 0.80 | 344.8 s | 1.94x / 0.97 | 221 s |
+| 4 GPUs | 476.8 s | 2.06x / 0.51 | 196.3 s | 3.40x / 0.85 | 222 s |
+| 4 GPUs, NUMA-bound | 471.9 s | 2.08x / 0.52 | 194.8 s | 3.43x / 0.86 | 233 s |
+| 4 GPUs, weights in `/dev/shm` | 403.5 s | 2.43x / 0.61 | 183.6 s | 3.63x / 0.91 | 189 s |
+
+End-to-end runs from launching the workers to the last member; the compute phase starts when the first worker
+starts its first member. Full numbers: [`results/ensemble_scaling_summary.txt`](results/ensemble_scaling_summary.txt).
+
+- **The GPUs do not slow each other down.** The median member takes 35.8 s in every configuration
+  (FCN3 15.6 s, CorrDiff 20.0 s), and all 16 members are **bitwise identical** to the 1-GPU run in every
+  configuration (SHA-256 of every CorrDiff input and output).
+- **The compute phase scales well (3.40x on 4 GPUs).** What it loses is each worker's first member, which is
+  40–95 s slower (first-call warm-up of FCN3 and CorrDiff) and is paid once per worker instead of once per run.
+- **End-to-end scaling stops at about 2x because of start-up.** Every worker spends 3 to 4.5 minutes before its first
+  member: **Python imports take 140–190 s**, then FCN3 loads in 34–64 s. The virtual environment sits on the
+  Lustre parallel file system (7.8 GB, about 78,000 files, 3.6 GB of CUDA libraries), and importing the FCN3 and
+  CorrDiff classes also imports every model module in `earth2studio.models.px`. Concurrent workers stay in
+  lock-step during start-up because they read the same files through the shared page cache, so they do not
+  contend with each other; the cost is the same fixed wall for 1 or 4 workers.
+- **Staging the weights in `/dev/shm`** (8.8 s copy) cuts FCN3 loading to 34 s and CorrDiff loading to 2 s and
+  raises end-to-end speedup to 2.43x. **NUMA binding changes nothing** (2.08x vs 2.06x): this workload is
+  GPU-bound, and only 16 of the node's 32 cores sit next to a GPU anyway.
+
+**Sizing (projection from these measurements):** 50 members per initialization take about 35 min on one A100 and
+about 12 min on four (13 members on the busiest GPU at 35.8 s each, plus one warm-up and start-up). For an
+operational service, the start-up wall argues for packaging the environment as a single image on fast local
+storage and for keeping models resident in a long-running inference service rather than starting Python per run.
+
 ## Limitations
 
 - One typhoon case, 48 hours, one GPU; each timing configuration was measured once or twice.
 - The CorrDiff benchmark uses a single input field; `torch.compile` was timed only at 4 samples, and its
   compile cost was measured with a cold cache.
+- The ensemble scaling job ran each configuration once, in a fixed order on one node; start-up times depend on
+  the shared file system's load at that moment and on page-cache state, which a user job cannot reset.
 - The centre track is the FCN3 grid-point MSLP minimum (0.25°, ~28 km cells, up to ~19 km quantization);
   "same grid point" means both precisions fall in the same cell.
 - The track check uses JMA and JTWC best tracks from IBTrACS, not CWA's own best track. One case cannot measure
