@@ -17,6 +17,7 @@ and four CorrDiff samples per lead time.
 | CorrDiff Taiwan, 4 samples per lead time | 2.21 s (0.55 s per sample); **1.29 s with `torch.compile` (1.71x)** |
 | 48-hour forecast + downscaling (8 steps at steady-state speed) | ~33 s |
 | 16-member ensemble, 1 → 4 GPUs on one node | 3.40x in the compute phase, but **2.06x end-to-end**: ~3.5 min of Python start-up and model loading per process |
+| Python start-up: venv on Lustre vs one tar unpacked to node-local disk | 280 s → **32 s** (10 s unpack + 22 s import) |
 | Peak PyTorch allocated memory | 49.4 GiB |
 | BF16 vs FP32, regional t2m / MSLP RMSE at +48 h | 0.083 K / 0.071 hPa; same typhoon-centre grid point at every lead |
 | `torch.compile` on FCN3 | no steady-state gain (1.97 vs 1.96 s); +38 s compile on the first step |
@@ -76,6 +77,7 @@ every CorrDiff sample are saved for inspection.
 | `jobs/corrdiff_bench_job.sh` | PJM job: CorrDiff benchmark, then an Nsight Systems capture of the default configuration |
 | `scripts/ensemble_worker.py`, `scripts/plot_ensemble_scaling.py` | One ensemble worker per GPU with timestamps and output hashes; scaling summary and timeline |
 | `jobs/ensemble_scaling_job.sh` | PJM job: 16 members on 1, 2 and 4 GPUs, plus NUMA-bound and `/dev/shm` variants |
+| `jobs/import_staging_job.sh` | PJM job: import time from the Lustre venv vs the same venv unpacked from one tar on node-local disk |
 | `results/`, `figures/` | Measured outputs used in this README |
 
 Model weights, wheels and forecast outputs are not committed. All site-specific paths live in `site.env`;
@@ -179,6 +181,7 @@ Each of these stopped the workflow at least once. The symptom is what you see; t
 | 10 | "BF16 vs FP32" initially looked like a no-op | Earth2Studio's FCN3 **already** runs under BF16 autocast whenever the torch-harmonics CUDA extension is present (`_cuda_extension_available`) | FP32 control: set `earth2studio.models.px.fcn3._cuda_extension_available = False` after loading; it only selects the autocast dtype, and the kernels stay the same |
 | 11 | Risk of corrupt CorrDiff weights when several workers start together | `CorrDiffTaiwan.load_model` re-extracts its package zip into the same directory on **every** load, so concurrent workers overwrite files that others are reading | Skip extraction when every file is already present at the right size (`scripts/ensemble_worker.py`), or give each worker its own copy |
 | 12 | FP32 "control" for CorrDiff silently used rounded weights | The loader sets `use_fp16=True`, whose setter casts the weights themselves; setting it back to `False` keeps FP16-rounded values | Reload both networks from the checkpoint for FP32 runs (`scripts/corrdiff_bench.py`) |
+| 13 | `OSError: ... libtorch_global_deps.so: failed to map segment from shared object` after staging the venv to `/dev/shm` | Shared libraries cannot be mapped executable from `/dev/shm` on the GPU nodes, the usual sign of a `noexec` mount (weights, being plain data, load fine from there) | Stage the environment to node-local disk (`/tmp`) instead |
 
 ## Results
 
@@ -357,6 +360,29 @@ starts its first member. Full numbers: [`results/ensemble_scaling_summary.txt`](
 about 12 min on four (13 members on the busiest GPU at 35.8 s each, plus one warm-up and start-up). For an
 operational service, the start-up wall argues for packaging the environment as a single image on fast local
 storage and for keeping models resident in a long-running inference service rather than starting Python per run.
+
+### Fixing the start-up wall: the environment as one file on node-local disk
+
+The cost is in reading ~78,000 small files from the parallel file system, not in Python itself. The same venv,
+packed once into a single 8.1 GB tar (15 min on the login node, done once) and unpacked on the GPU node, starts
+in a fraction of the time. Each line imports `torch` plus the FCN3 and CorrDiff classes, exactly what a worker does:
+
+| Same GPU node, measured in this order | Seconds |
+|---|---:|
+| Import from the venv on Lustre, first | 280.0 |
+| Import from the venv on Lustre, second | 153.5 |
+| 4 concurrent imports from Lustre | 137.3 |
+| Unpack the 8.1 GB tar to node-local `/tmp` | 10.4 |
+| Import from `/tmp`, first | **21.7** |
+| Import from `/tmp`, second | 16.5 |
+| 4 concurrent imports from `/tmp` | 16.8 |
+
+Unpack plus first import is **32 s instead of 280 s (8.7x)**, and four workers start as fast as one.
+Raw numbers: [`results/import_times_local_tmp.jsonl`](results/import_times_local_tmp.jsonl). Applied to the
+4-GPU ensemble above (where each worker waited 3–4.5 min before computing), this would bring end-to-end time
+much closer to the 3.4x compute-phase scaling; that combined run has not been measured yet. `/dev/shm` is not
+an option for the environment on this cluster (pitfall 13), and container runtimes (Apptainer, squashfs mounts)
+are not installed, which is why a plain tar was used.
 
 ## Limitations
 

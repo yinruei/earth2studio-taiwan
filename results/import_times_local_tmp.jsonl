@@ -1,0 +1,7 @@
+{"label": "lustre_first", "workers": 1, "ok": true, "seconds": 280.008, "module": "<deployment root>/venv/lib/python3.12/site-packages/earth2studio/__init__.py"}
+{"label": "lustre_second", "workers": 1, "ok": true, "seconds": 153.527, "module": "<deployment root>/venv/lib/python3.12/site-packages/earth2studio/__init__.py"}
+{"label": "lustre_4_workers", "workers": 4, "ok": true, "seconds": 137.332, "module": "<deployment root>/venv/lib/python3.12/site-packages/earth2studio/__init__.py"}
+{"label": "stage_tar_to_local", "workers": 1, "ok": true, "seconds": 10.4207, "module": ""}
+{"label": "local_first", "workers": 1, "ok": true, "seconds": 21.6762, "module": "/tmp/<staged>/venv/lib/python3.12/site-packages/earth2studio/__init__.py"}
+{"label": "local_second", "workers": 1, "ok": true, "seconds": 16.5236, "module": "/tmp/<staged>/venv/lib/python3.12/site-packages/earth2studio/__init__.py"}
+{"label": "local_4_workers", "workers": 4, "ok": true, "seconds": 16.8229, "module": "/tmp/<staged>/venv/lib/python3.12/site-packages/earth2studio/__init__.py"}
