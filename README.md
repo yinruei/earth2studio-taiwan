@@ -8,7 +8,7 @@ an old system compiler and an older NVIDIA driver, which are typical for governm
 The case is **Typhoon Kong-rey (2024)**: GFS analysis at 2024-10-30 00 UTC, a 48-hour forecast in 6-hour steps,
 and four CorrDiff samples per lead time.
 
-**Results at a glance (1x A100-SXM4-80GB):**
+**Results at a glance (A100-SXM4-80GB; one GPU unless the row says otherwise):**
 
 | | |
 |---|---|
@@ -26,6 +26,22 @@ and four CorrDiff samples per lead time.
 
 This is a performance and engineering study of **one** case, not a forecast-skill evaluation. The FCN3 track is
 checked against IBTrACS best tracks as a sanity check; one case cannot characterize FCN3's skill.
+
+## What this project shows
+
+- **Offline deployment under real constraints:** a reproducible 7.5 GB bundle and build scripts that run
+  Earth2Studio, PhysicsNeMo and custom CUDA extensions without internet access, root, or a modern system compiler
+  ([deployment](#offline-deployment), [13 pitfalls](#pitfalls-and-fixes)).
+- **Profile first, then optimize:** Nsight Systems shows CorrDiff is memory-bound, and kernel fusion with
+  `torch.compile` makes it 1.71x faster and closer to FP32 ([CorrDiff](#corrdiff-profile-first-then-optimize)).
+- **Mixed precision with numerical checks:** BF16 vs FP32 for FCN3 in a controlled ABBA comparison, down to the
+  typhoon-centre grid point ([BF16 vs FP32](#bf16-autocast-vs-fp32-fcn3-only-corrdiff-unchanged)).
+- **Multi-GPU scaling and its real bottleneck:** a 16-member ensemble on 4 A100s, and 8.7x faster start-up from
+  moving the Python environment off the parallel file system
+  ([ensemble](#ensemble-on-4-gpus-strong-scaling-and-the-start-up-wall),
+  [start-up](#fixing-the-start-up-wall-the-environment-as-one-file-on-node-local-disk)).
+- **Distributed training:** PhysicsNeMo AFNO with PyTorch DDP and NCCL over NVLink at 0.98 / 0.93 weak-scaling
+  efficiency ([training](#training-physicsnemo-afno-with-data-parallelism-on-4-gpus)).
 
 ## Architecture
 
@@ -91,7 +107,7 @@ the only other edits for a new cluster are the `#PJM -L rscunit=` / `rscgrp=` li
 
 | Item | Value |
 |---|---|
-| GPU node | 4x A100-SXM4-80GB (1 used), driver 535.154.05 (CUDA 12.2) |
+| GPU node | 4x A100-SXM4-80GB with NVLink (1 GPU for single forecasts, all 4 for the ensemble and training), driver 535.154.05 (CUDA 12.2) |
 | OS / scheduler | RHEL 8.6, glibc 2.28, Fujitsu PJM |
 | System compiler | gcc 8.5 (login node); GPU nodes have no `cc1` |
 | CUDA toolkit for builds | NVHPC 24.11, CUDA 12.6 |
@@ -188,7 +204,8 @@ Each of these stopped the workflow at least once. The symptom is what you see; t
 
 ## Results
 
-All timings are wall-clock with CUDA synchronization around each stage, on one A100. Step 0 returns the initial
+All timings are wall-clock with CUDA synchronization around each stage, on one A100 unless a section says
+otherwise. Step 0 returns the initial
 condition; step +6 h includes warm-up. "Steady" means the median over +12..+48 h.
 
 ### Typhoon Kong-rey, valid 2024-10-31 06 UTC (+30 h)
@@ -420,9 +437,25 @@ on every GPU, so the timings contain only compute and gradient all-reduce; per-G
   step 100 to 0.034 (normalized units), against 0.215 for persistence. All members start from the same analysis and see the
   same weather, so this shows the training pipeline works, not that the emulator generalizes.
 
+## Next steps
+
+Not done yet, in order of expected payoff:
+
+- Re-run the 4-GPU ensemble with the environment staged on node-local disk, to measure the end-to-end gain the
+  start-up experiment predicts.
+- Serve FCN3 and CorrDiff as resident models (Triton Inference Server or NVIDIA NIM), so start-up is paid once
+  instead of per run.
+- Run `nccl-tests` on the same node to separate all-reduce transfer time from synchronization wait in the training
+  profile.
+- Compare TensorRT with `torch.compile` for CorrDiff, using the same accuracy test (difference relative to the
+  seed-to-seed spread).
+- Verify CorrDiff wind and reflectivity against station and radar observations, and extend the track check to more
+  typhoons.
+
 ## Limitations
 
-- One typhoon case, 48 hours, one GPU; each timing configuration was measured once or twice.
+- One typhoon case and a 48-hour forecast on one node; most timing configurations were measured once or twice
+  (CorrDiff: five timed calls each).
 - The CorrDiff benchmark uses a single input field; `torch.compile` was timed only at 4 samples, and its
   compile cost was measured with a cold cache.
 - The training data have almost no meteorological diversity (one analysis, 4 days), and the AFNO is small
